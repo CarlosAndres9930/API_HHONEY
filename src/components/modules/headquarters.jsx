@@ -197,7 +197,10 @@ const Tarjeta = ({ id, titulo, espaciosDisponibles, ejemplaresRegistrados, onEli
 // Componente Headquarters
 const Headquarters = () => {
   const [tarjetas, setTarjetas] = useState([
-    { id: 1, titulo: 'Girardota', espaciosDisponibles: '', ejemplaresRegistrados: '' },
+    { id: 1, titulo: 'Girardota', espaciosDisponibles: '5', ejemplaresRegistrados: '10' },
+    { id: 2, titulo: 'Portachuelo', espaciosDisponibles: '3', ejemplaresRegistrados: '8' },
+    { id: 3, titulo: 'Tamesis', espaciosDisponibles: '7', ejemplaresRegistrados: '12' },
+
     // Puedes inicializar con más tarjetas si lo deseas
   ]);
 

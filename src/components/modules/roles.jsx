@@ -54,15 +54,15 @@ const data = [
     Description: "Se encargará de ayudarle al montador y también podrá administrar medicina si así es requerido", 
     Estado: true, 
     Permisos: {
-      Users: { View: true, Create: false, ChangeStatus: false, Edit: false, Delete: false },
-      Roles: { View: true, Create: false, ChangeStatus: false, Edit: false, Delete: false },
+      Users: { View: false, Create: false, ChangeStatus: false, Edit: false, Delete: false },
+      Roles: { View: false, Create: false, ChangeStatus: false, Edit: false, Delete: false },
       Employees: { View: true, Create: true, ChangeStatus: false, Edit: true, Delete: false },
       Clients: { View: true, Create: false, ChangeStatus: false, Edit: false, Delete: false },
       Services: { View: true, Create: false, ChangeStatus: false, Edit: false, Delete: false },
       Venues: { View: true, Create: false, ChangeStatus: false, Edit: false, Delete: false },
       "Category of Specimens": { View: true, Create: false, ChangeStatus: false, Edit: false, Delete: false },
       Transfers: { View: true, Create: false, ChangeStatus: false, Edit: false, Delete: false },
-      Records: { View: true, Create: false, ChangeStatus: false, Edit: false, Delete: false },
+      Records: { View: false, Create: false, ChangeStatus: false, Edit: false, Delete: false },
       Dashboard: { View: true, Create: false, ChangeStatus: false, Edit: false, Delete: false }
     }
   },
@@ -124,7 +124,6 @@ const Roles = () => {
       Swal.fire({
         icon: "error",
         title: "Permiso no permitido",
-        text: "Solo se permite seleccionar el permiso 'View' en el módulo 'Dashboard'."
       });
       return; // No cambiar el estado si no es "View"
     }

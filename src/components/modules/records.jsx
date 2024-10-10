@@ -12,7 +12,7 @@ const initialPayments = [
   { id: 3, nombreCliente: 'Luis Martínez', fechaPago: '2024-09-05', valor: 1000000, metodoPago: 'Tarjeta de Crédito', comprobante: 'comprobante3.jpg', contratoDuracion: 6, mesesPagados: 1, totalAPagar: 6000000 },
 ];
 
-class Specimens extends React.Component {
+class Pagos extends React.Component {
   state = {
     payments: initialPayments,
     clientes: initialPayments.map(payment => ({
@@ -67,17 +67,22 @@ class Specimens extends React.Component {
   handleFileChange = e => {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
-      this.setState({
-        form: {
-          ...this.state.form,
-          comprobante: file,
-        },
-        fileError: ''
-      });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            this.setState({
+                form: {
+                    ...this.state.form,
+                    comprobante: reader.result, // Almacena la URL de la imagen
+                },
+                fileError: ''
+            });
+        };
+        reader.readAsDataURL(file);
     } else {
-      this.setState({ fileError: 'El archivo debe ser una imagen.' });
+        this.setState({ fileError: 'El archivo debe ser una imagen.' });
     }
-  }
+}
+
 
   handleSearch = e => {
     const searchText = e.target.value.toLowerCase();
@@ -116,6 +121,7 @@ class Specimens extends React.Component {
   handleComprobanteClick = (comprobante) => {
     this.setState({ selectedComprobante: comprobante, comprobanteModal: true });
   }
+  
 
   registrarPago = () => {
     const { clienteId, fechaPago, valor, metodoPago, comprobante, mesPago } = this.state.form;
@@ -137,12 +143,12 @@ class Specimens extends React.Component {
     }
 
     const nuevoPago = {
-      id: cliente.id, // No se agrega un nuevo registro, solo se actualiza el existente
+      id: cliente.id,
       nombreCliente: cliente.nombre,
       fechaPago,
       valor: parseFloat(valor),
       metodoPago,
-      comprobante: comprobante.name, // Asegúrate de que el nombre sea el correcto
+      comprobante: this.state.form.comprobante, // Se almacena la URL de la imagen
       contratoDuracion: cliente.contratoDuracion,
       mesesPagados: cliente.mesesPagados + 1,
       totalAPagar: cliente.totalAPagar
@@ -159,20 +165,26 @@ class Specimens extends React.Component {
 
       return {
         clientes: updatedClientes,
-        modalRegistro: false
+        modalRegistro: false,
+        payments: [...prevState.payments, nuevoPago], // Se añade el nuevo pago a la lista
+        form: {
+          clienteId: '',
+          fechaPago: new Date().toISOString().split('T')[0],
+          valor: 1000000,
+          metodoPago: 'Efectivo',
+          comprobante: null,
+          mesPago: ''
+        }
       };
     });
     Swal.fire('Éxito', 'Pago registrado exitosamente.', 'success');
   }
 
   render() {
-    const { form, modalRegistro, fileError, filteredPayments, clientes, selectedComprobante, comprobanteModal } = this.state;
+    const { form, modalRegistro, fileError, filteredPayments, selectedComprobante, comprobanteModal } = this.state;
 
     return (
       <Container>
-        <div className="d-flex justify-content-center mb-3">
-          <h1 className="text-center border p-2">Registros de Pagos</h1>
-        </div>
         <div className="d-flex justify-content-between mb-3">
           <Input
             type="text"
@@ -186,46 +198,44 @@ class Specimens extends React.Component {
           </div>
         </div>
 
-        <div className="d-flex">
-          <Table className="table table-bordered" style={{ flex: 2 }}>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre del Cliente</th>
-                <th>Duración del Contrato (meses)</th>
-                <th>Última Fecha de Pago</th>
-                <th>Método de Pago</th>
-                <th>Meses Pagados</th>
-                <th>Valor Total a Pagar</th>
-                <th>Valor Restante a Pagar</th>
-                <th>Comprobante</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPayments.map(payment => {
-                const cliente = clientes.find(c => c.nombre === payment.nombreCliente);
-                const valorRestante = cliente ? cliente.totalAPagar - (cliente.mesesPagados * cliente.valorMes) : 0;
-                return (
-                  <tr key={payment.id}>
-                    <td>{payment.id}</td>
-                    <td>{payment.nombreCliente}</td>
-                    <td>{cliente ? cliente.contratoDuracion : ''}</td>
-                    <td>{payment.fechaPago}</td>
-                    <td>{payment.metodoPago}</td>
-                    <td>{cliente ? cliente.mesesPagados : ''}</td>
-                    <td>{cliente ? cliente.totalAPagar.toLocaleString() : ''}</td>
-                    <td>{valorRestante.toLocaleString()}</td>
-                    <td>
-                      <Button onClick={() => this.handleComprobanteClick(payment.comprobante)}>
-                        <FontAwesomeIcon icon={faFile} style={{ cursor: 'pointer', fontSize: '20px', color: '#007bff' }} />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
-        </div>
+        <Table className="table table-bordered">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre del Cliente</th>
+              <th>Duración del Contrato (meses)</th>
+              <th>Última Fecha de Pago</th>
+              <th>Método de Pago</th>
+              <th>Meses Pagados</th>
+              <th>Valor Total a Pagar</th>
+              <th>Valor Restante a Pagar</th>
+              <th>Comprobante</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredPayments.map(payment => {
+              const cliente = this.state.clientes.find(c => c.nombre === payment.nombreCliente);
+              const valorRestante = cliente ? cliente.totalAPagar - (cliente.mesesPagados * cliente.valorMes) : 0;
+              return (
+                <tr key={payment.id}>
+                  <td>{payment.id}</td>
+                  <td>{payment.nombreCliente}</td>
+                  <td>{cliente ? cliente.contratoDuracion : ''}</td>
+                  <td>{payment.fechaPago}</td>
+                  <td>{payment.metodoPago}</td>
+                  <td>{cliente ? cliente.mesesPagados : ''}</td>
+                  <td>{cliente ? cliente.totalAPagar.toLocaleString() : ''}</td>
+                  <td>{valorRestante.toLocaleString()}</td>
+                  <td>
+                    <Button onClick={() => this.handleComprobanteClick(payment.comprobante)}>
+                      <FontAwesomeIcon icon={faFile} style={{ cursor: 'pointer', fontSize: '20px', color: '#007bff' }} />
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
 
         {/* Modal para registrar un pago */}
         <Modal isOpen={modalRegistro}>
@@ -243,7 +253,7 @@ class Specimens extends React.Component {
                 onChange={this.handleClientChange}
               >
                 <option value="">Seleccione un cliente</option>
-                {clientes.map(cliente => (
+                {this.state.clientes.map(cliente => (
                   <option key={cliente.id} value={cliente.id}>{cliente.nombre}</option>
                 ))}
               </Input>
@@ -319,7 +329,7 @@ class Specimens extends React.Component {
           <ModalBody>
             {selectedComprobante ? (
               <img 
-                src={`/uploads/${selectedComprobante}`} 
+                src={selectedComprobante} 
                 alt="Comprobante" 
                 style={{ width: '100%', height: 'auto' }} 
               />
@@ -336,4 +346,4 @@ class Specimens extends React.Component {
   }
 }
 
-export default Specimens;
+export default Pagos;
