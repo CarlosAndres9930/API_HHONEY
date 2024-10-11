@@ -371,6 +371,7 @@ class Services extends React.Component {
           }}>
             {service.descripcion}
           </p>
+          <p className="card-text">{service.precio} </p>
           <div className="d-flex justify-content-between align-items-center" style={{ marginTop: 'auto' }}>
             <FormGroup style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)', padding: '0.2rem', borderRadius: '0.2rem', marginBottom: '0.5rem', flex: '1' }}>
               <Input
@@ -446,6 +447,10 @@ class Services extends React.Component {
               <Input type="text" name="descripcion" placeholder="Descripción" value={form.descripcion} onChange={this.handleChange} />
             </FormGroup>
             <FormGroup>
+              <Input type="Number" name="precio" placeholder="Precio" value={form.precio} onChange={this.handleChange} />
+            </FormGroup>
+
+            <FormGroup>
               <Input type="file" name="imagenFile" onChange={this.handleChange} />
             </FormGroup>
           </ModalBody>
@@ -464,6 +469,9 @@ class Services extends React.Component {
             </FormGroup>
             <FormGroup>
               <Input type="text" name="descripcion" placeholder="Descripción" value={form.descripcion} onChange={this.handleChange} />
+            </FormGroup>
+            <FormGroup>
+              <Input type="Number" name="precio" placeholder="Precio" value={form.precio} onChange={this.handleChange} />
             </FormGroup>
             <FormGroup>
               <Input type="file" name="imagenFile" onChange={this.handleChange} />

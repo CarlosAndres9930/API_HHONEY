@@ -3,20 +3,20 @@ import { Table, Button, ButtonGroup, Container, Modal, ModalBody, ModalHeader, M
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 // Datos iniciales de medicinas
-const data = [
-  { id: 1, NombreMedicina: "Medicina A", Cantidad: "10", Dosis: "2ml", HorarioAdministracion: "08:00 AM", Estado: 'Administrado' },
-  { id: 2, NombreMedicina: "Medicina B", Cantidad: "20", Dosis: "5ml", HorarioAdministracion: "12:00 PM", Estado: 'No Administrado' },
-  { id: 3, NombreMedicina: "Medicina C", Cantidad: "15", Dosis: "1ml", HorarioAdministracion: "06:00 PM", Estado: 'Administrado' }
-];
+// const data = [
+//   { id: 1, NombreMedicina: "Medicina A", Cantidad: "10", Dosis: "2ml", HorarioAdministracion: "08:00 AM", Estado: 'Administrado' },
+//   { id: 2, NombreMedicina: "Medicina B", Cantidad: "20", Dosis: "5ml", HorarioAdministracion: "12:00 PM", Estado: 'No Administrado' },
+//   { id: 3, NombreMedicina: "Medicina C", Cantidad: "15", Dosis: "1ml", HorarioAdministracion: "06:00 PM", Estado: 'Administrado' }
+// ];
 
 class Medicinas extends React.Component {
   state = {
-    data: data,
-    filteredData: data,
+    data: [],
+    filteredData: [],
     form: {
-      id: '',
       NombreMedicina: '',
       Cantidad: '',
       Dosis: '',
@@ -41,17 +41,40 @@ class Medicinas extends React.Component {
     });
   }
 
+  componentDidMount() {
+    this.fetchData();
+  }
+
+  fetchData = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/medicinas');
+      console.log(response.data);
+
+      // Actualiza el estado con los datos obtenidos
+      this.setState({
+        data: response.data,
+        filteredData: response.data, // Inicializar filteredData también
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+
   handleSearch = e => {
     const searchText = e.target.value.toLowerCase();
-    this.setState({
+    this.setState((prevState) => ({
       searchText,
-      filteredData: this.state.data.filter(item =>
-        item.NombreMedicina.toLowerCase().includes(searchText) ||
-        item.Cantidad.toLowerCase().includes(searchText) ||
-        item.Dosis.toLowerCase().includes(searchText) ||
-        item.HorarioAdministracion.toLowerCase().includes(searchText)
-      )
-    });
+      filteredData: prevState.data.filter((item) => {
+        // Verificar que cada campo existe antes de aplicar toLowerCase()
+        return (
+        (item.NombreMedicina && item.NombreMedicina.toLowerCase().includes(searchText)) ||
+        (item.Cantidad && item.Cantidad.toLowerCase().includes(searchText)) ||
+        (item.Dosis && item.Dosis.toLowerCase().includes(searchText)) ||
+        (item.HorarioAdministracion && item.HorarioAdministracion.toLowerCase().includes(searchText))
+        );
+      })
+    }));
   }
 
   mostrarmodalAñadir = () => {
@@ -104,7 +127,7 @@ class Medicinas extends React.Component {
     return this.state.data.some(item => item.NombreMedicina === nombreMedicina);
   }
 
-  Añadir = () => {
+  Añadir = async () => {
     const { NombreMedicina, Cantidad, Dosis, HorarioAdministracion } = this.state.form;
 
     // Validar campos obligatorios
@@ -143,13 +166,15 @@ class Medicinas extends React.Component {
       return;
     }
 
-    const valorNuevo = { ...this.state.form, id: this.state.data.length + 1 };
+    const valorNuevo = { ...this.state.form};
     const lista = [...this.state.data, valorNuevo];
+    await axios.post('http://localhost:3000/api/medicinas', valorNuevo);
+    this.fetchData();
     this.setState({ data: lista, filteredData: lista, modalAñadir: false });
     Swal.fire('Éxito', 'Ítem registrado exitosamente.', 'success');
   }
 
-  editar = (dato) => {
+  editar = async (dato) => {
     // Validar campos obligatorios
     if (!dato.NombreMedicina || !dato.Cantidad || !dato.Dosis || !dato.HorarioAdministracion) {
       Swal.fire('Error', 'Todos los campos son obligatorios.', 'error');
@@ -180,258 +205,268 @@ class Medicinas extends React.Component {
       return;
     }
 
+
     // Verificar si el ítem ya existe
-    const existingItem = this.state.data.find(item => item.NombreMedicina === dato.NombreMedicina && item.id !== dato.id);
+    const existingItem = this.state.data.find(item => item.NombreMedicina === dato.NombreMedicina && item._id !== dato._id);
     if (existingItem) {
       Swal.fire('Error', 'El ítem ya existe.', 'error');
       return;
     }
 
-    const lista = this.state.data.map(registro =>
-      registro.id === dato.id ? { ...dato } : registro
-    );
-    this.setState({ data: lista, filteredData: lista, modalEditar: false });
-    Swal.fire('Éxito', 'Ítem actualizado exitosamente.', 'success');
-  }
+    await axios.put(`http://localhost:3000/api/medicinas/${dato._id}`, dato);
 
-  eliminar = (dato) => {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: `Realmente deseas eliminar el ítem ${dato.id}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then(result => {
-      if (result.isConfirmed) {
-        const lista = this.state.data.filter(registro => registro.id !== dato.id);
-        this.setState({ data: lista, filteredData: lista });
-        Swal.fire('Eliminado', 'Ítem eliminado exitosamente.', 'success');
-      }
-    });
-  }
+const lista = this.state.data.map(registro =>
+  registro._id === dato._id ? { ...dato } : registro
+);
+this.setState({ data: lista, filteredData: lista, modalEditar: false });
+Swal.fire('Éxito', 'Ítem actualizado exitosamente.', 'success');
+}
 
-  toggleEstado = (id) => {
-    const lista = this.state.data.map(registro =>
-      registro.id === id ? { ...registro, Estado: registro.Estado === 'Administrado' ? 'No Administrado' : 'Administrado' } : registro
-    );
-    this.setState({ data: lista, filteredData: lista });
-  }
+eliminar = (dato) => {
+  Swal.fire({
+    title: '¿Estás seguro?',
+    text: `Realmente deseas eliminar el ítem ${dato.NombreMedicina}?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      await axios.delete(`http://localhost:3000/api/medicinas/${dato._id}`);
+      const lista = this.state.data.filter(registro => registro._id !== dato._id);
+      this.setState({ data: lista, filteredData: lista });
+      Swal.fire('Eliminado', 'Ítem eliminado exitosamente.', 'success');
+    }
+  });
+}
 
-  render() {
-    const { form, modalAñadir, modalEditar, nombreMedicinaError, cantidadError, dosisError, horarioError } = this.state;
+toggleEstado = async (id) => {
+  const registroActual = this.state.data.find(item => item._id === id);
+  const nuevoEstado = registroActual.Estado === 'Administrado' ? 'No Administrado' : 'Administrado';
 
-    return (
-      <Container>
-        <div className="d-flex justify-content-between mb-3">
-          <Input
-            type="text"
-            placeholder="Buscar"
-            value={this.state.searchText}
-            onChange={this.handleSearch}
-            style={{ width: '300px' }}
-          />
-          <Button color="success" onClick={this.mostrarmodalAñadir}>Añadir medicina</Button>
-        </div>
+  const lista = this.state.data.map(registro =>
+    registro._id === id ? { ...registro, Estado: nuevoEstado } : registro
+  );
 
-        <Table className="table table-bordered">
-          <thead>
-            <tr>
-              <th>Nombre Medicina</th>
-              <th>Cantidad</th>
-              <th>Dosis</th>
-              <th>Horario Administración</th>
-              <th>Estado</th>
-              <th>Acciones</th>
+  await axios.put(`http://localhost:3000/api/medicinas/${id}`, { ...registroActual, Estado: nuevoEstado });
+  this.fetchData();
+  this.setState({ data: lista, filteredData: lista });
+}
+
+render() {
+  const { form, modalAñadir, modalEditar, nombreMedicinaError, cantidadError, dosisError, horarioError } = this.state;
+
+  return (
+    <Container>
+      <div className="d-flex justify-content-between mb-3">
+        <Input
+          type="text"
+          placeholder="Buscar"
+          value={this.state.searchText}
+          onChange={this.handleSearch}
+          style={{ width: '300px' }}
+        />
+        <Button color="success" onClick={this.mostrarmodalAñadir}>Añadir medicina</Button>
+      </div>
+
+      <Table className="table table-bordered">
+        <thead>
+          <tr>
+            <th>Nombre Medicina</th>
+            <th>Cantidad</th>
+            <th>Dosis</th>
+            <th>Horario Administración</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {this.state.filteredData.map(elemento => (
+            <tr key={elemento._id}>
+              <td>{elemento.NombreMedicina}</td>
+              <td>{elemento.Cantidad}</td>
+              <td>{elemento.Dosis}</td>
+              <td>{elemento.HorarioAdministracion}</td>
+              <td>{elemento.Estado}</td>
+              <td>
+                <ButtonGroup>
+                  <Button
+                    color={elemento.Estado === 'Administrado' ? 'secondary' : 'success'}
+                    onClick={() => this.toggleEstado(elemento._id)}
+                    size="sm"
+                    className="mr-1"
+                  >
+                    {elemento.Estado === 'Administrado' ? 'Off' : 'On'}
+                  </Button>
+                  <Button
+                    color="dark"
+                    onClick={() => this.mostrarModalEditar(elemento)}
+                    size="sm"
+                    className="mr-1"
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                  </Button>
+                  <Button
+                    color="danger"
+                    onClick={() => this.eliminar(elemento)}
+                    size="sm"
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </Button>
+                </ButtonGroup>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {this.state.filteredData.map(elemento => (
-              <tr key={elemento.id}>
-                <td>{elemento.NombreMedicina}</td>
-                <td>{elemento.Cantidad}</td>
-                <td>{elemento.Dosis}</td>
-                <td>{elemento.HorarioAdministracion}</td>
-                <td>{elemento.Estado}</td>
-                <td>
-                  <ButtonGroup>
-                    <Button
-                      color={elemento.Estado === 'Administrado' ? 'secondary' : 'success'}
-                      onClick={() => this.toggleEstado(elemento.id)}
-                      size="sm"
-                      className="mr-1"
-                    >
-                      {elemento.Estado === 'Administrado' ? 'Off' : 'On'}
-                    </Button>
-                    <Button
-                      color="dark"
-                      onClick={() => this.mostrarModalEditar(elemento)}
-                      size="sm"
-                      className="mr-1"
-                    >
-                      <FontAwesomeIcon icon={faEdit} />
-                    </Button>
-                    <Button
-                      color="danger"
-                      onClick={() => this.eliminar(elemento)}
-                      size="sm"
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </Button>
-                  </ButtonGroup>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+          ))}
+        </tbody>
+      </Table>
 
-        {/* Modal Añadir */}
-        <Modal isOpen={modalAñadir}>
-          <ModalHeader>
-            <div>
-              <h3>Añadir ítem</h3>
-            </div>
-          </ModalHeader>
+      {/* Modal Añadir */}
+      <Modal isOpen={modalAñadir}>
+        <ModalHeader>
+          <div>
+            <h3>Añadir ítem</h3>
+          </div>
+        </ModalHeader>
 
-          <ModalBody>
-            <FormGroup>
-              <label>Nombre Medicina:</label>
-              <Input
-                className="form-control"
-                name="NombreMedicina"
-                type="text"
-                value={form.NombreMedicina}
-                onChange={this.handleChange}
-              />
-              <small className="text-danger">{nombreMedicinaError}</small>
-            </FormGroup>
+        <ModalBody>
+          <FormGroup>
+            <label>Nombre Medicina:</label>
+            <Input
+              className="form-control"
+              name="NombreMedicina"
+              type="text"
+              value={form.NombreMedicina}
+              onChange={this.handleChange}
+            />
+            <small className="text-danger">{nombreMedicinaError}</small>
+          </FormGroup>
 
-            <FormGroup>
-              <label>Cantidad:</label>
-              <Input
-                className="form-control"
-                name="Cantidad"
-                type="text"
-                value={form.Cantidad}
-                onChange={this.handleChange}
-              />
-              <small className="text-danger">{cantidadError}</small>
-            </FormGroup>
+          <FormGroup>
+            <label>Cantidad:</label>
+            <Input
+              className="form-control"
+              name="Cantidad"
+              type="text"
+              value={form.Cantidad}
+              onChange={this.handleChange}
+            />
+            <small className="text-danger">{cantidadError}</small>
+          </FormGroup>
 
-            <FormGroup>
-              <label>Dosis:</label>
-              <Input
-                className="form-control"
-                name="Dosis"
-                type="text"
-                value={form.Dosis}
-                onChange={this.handleChange}
-              />
-              <small className="text-danger">{dosisError}</small>
-            </FormGroup>
+          <FormGroup>
+            <label>Dosis:</label>
+            <Input
+              className="form-control"
+              name="Dosis"
+              type="text"
+              value={form.Dosis}
+              onChange={this.handleChange}
+            />
+            <small className="text-danger">{dosisError}</small>
+          </FormGroup>
 
-            <FormGroup>
-              <label>Horario Administración:</label>
-              <Input
-                className="form-control"
-                name="HorarioAdministracion"
-                type="text"
-                value={form.HorarioAdministracion}
-                onChange={this.handleChange}
-              />
-              <small className="text-danger">{horarioError}</small>
-            </FormGroup>
-          </ModalBody>
+          <FormGroup>
+            <label>Horario Administración:</label>
+            <Input
+              className="form-control"
+              name="HorarioAdministracion"
+              type="text"
+              value={form.HorarioAdministracion}
+              onChange={this.handleChange}
+            />
+            <small className="text-danger">{horarioError}</small>
+          </FormGroup>
+        </ModalBody>
 
-          <ModalFooter>
-            <Button color="primary" onClick={this.Añadir}>Añadir</Button>
-            <Button color="secondary" onClick={this.ocultarmodalAñadir}>Cancelar</Button>
-          </ModalFooter>
-        </Modal>
+        <ModalFooter>
+          <Button color="primary" onClick={this.Añadir}>Añadir</Button>
+          <Button color="secondary" onClick={this.ocultarmodalAñadir}>Cancelar</Button>
+        </ModalFooter>
+      </Modal>
 
-        {/* Modal Editar */}
-        <Modal isOpen={modalEditar}>
-          <ModalHeader>
-            <div>
-              <h3>Editar ítem</h3>
-            </div>
-          </ModalHeader>
+      {/* Modal Editar */}
+      <Modal isOpen={modalEditar}>
+        <ModalHeader>
+          <div>
+            <h3>Editar ítem</h3>
+          </div>
+        </ModalHeader>
 
-          <ModalBody>
-            <FormGroup>
-              <label>Nombre Medicina:</label>
-              <Input
-                className="form-control"
-                name="NombreMedicina"
-                type="text"
-                value={form.NombreMedicina}
-                onChange={this.handleChange}
-              />
-              <small className="text-danger">{nombreMedicinaError}</small>
-            </FormGroup>
+        <ModalBody>
+          <FormGroup>
+            <label>Nombre Medicina:</label>
+            <Input
+              className="form-control"
+              name="NombreMedicina"
+              type="text"
+              value={form.NombreMedicina}
+              onChange={this.handleChange}
+            />
+            <small className="text-danger">{nombreMedicinaError}</small>
+          </FormGroup>
 
-            <FormGroup>
-              <label>Cantidad:</label>
-              <Input
-                className="form-control"
-                name="Cantidad"
-                type="text"
-                value={form.Cantidad}
-                onChange={this.handleChange}
-              />
-              <small className="text-danger">{cantidadError}</small>
-            </FormGroup>
+          <FormGroup>
+            <label>Cantidad:</label>
+            <Input
+              className="form-control"
+              name="Cantidad"
+              type="text"
+              value={form.Cantidad}
+              onChange={this.handleChange}
+            />
+            <small className="text-danger">{cantidadError}</small>
+          </FormGroup>
 
-            <FormGroup>
-              <label>Dosis:</label>
-              <Input
-                className="form-control"
-                name="Dosis"
-                type="text"
-                value={form.Dosis}
-                onChange={this.handleChange}
-              />
-              <small className="text-danger">{dosisError}</small>
-            </FormGroup>
+          <FormGroup>
+            <label>Dosis:</label>
+            <Input
+              className="form-control"
+              name="Dosis"
+              type="text"
+              value={form.Dosis}
+              onChange={this.handleChange}
+            />
+            <small className="text-danger">{dosisError}</small>
+          </FormGroup>
 
-            <FormGroup>
-              <label>Horario Administración:</label>
-              <Input
-                className="form-control"
-                name="HorarioAdministracion"
-                type="text"
-                value={form.HorarioAdministracion}
-                onChange={this.handleChange}
-              />
-              <small className="text-danger">{horarioError}</small>
-            </FormGroup>
+          <FormGroup>
+            <label>Horario Administración:</label>
+            <Input
+              className="form-control"
+              name="HorarioAdministracion"
+              type="text"
+              value={form.HorarioAdministracion}
+              onChange={this.handleChange}
+            />
+            <small className="text-danger">{horarioError}</small>
+          </FormGroup>
 
-            <FormGroup>
-              <label>Estado:</label>
-              <Input
-                type="select"
-                name="Estado"
-                value={form.Estado}
-                onChange={this.handleChange}
-                className="form-control"
-              >
-                <option value="Administrado">Administrado</option>
-                <option value="No Administrado">No Administrado</option>
-              </Input>
-              <small className="text-danger">{this.state.estadoError}</small>
-            </FormGroup>
-          </ModalBody>
+          <FormGroup>
+            <label>Estado:</label>
+            <Input
+              type="select"
+              name="Estado"
+              value={form.Estado}
+              onChange={this.handleChange}
+              className="form-control"
+            >
+              <option value="Administrado">Administrado</option>
+              <option value="No Administrado">No Administrado</option>
+            </Input>
+            <small className="text-danger">{this.state.estadoError}</small>
+          </FormGroup>
+        </ModalBody>
 
-          <ModalFooter>
-            <Button color="primary" onClick={() => this.editar(form)}>Actualizar</Button>
-            <Button color="secondary" onClick={this.ocultarModalEditar}>Cancelar</Button>
-          </ModalFooter>
-        </Modal>
-      </Container>
-    );
-  }
+        <ModalFooter>
+          <Button color="primary" onClick={() => this.editar(form)}>Actualizar</Button>
+          <Button color="secondary" onClick={this.ocultarModalEditar}>Cancelar</Button>
+        </ModalFooter>
+      </Modal>
+    </Container>
+  );
+}
 }
 
 export default Medicinas;
