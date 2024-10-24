@@ -229,22 +229,28 @@ class Medicinas extends React.Component {
   eliminar = (dato) => {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: 'Realmente deseas eliminar el ítem ${dato.NombreMedicina}?',
+      text: `Realmente deseas eliminar el ítem ${dato.NombreMedicina}?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
-    }).then( async (result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        await axios.delete('http://localhost:3000/api/medicinas/${dato._id}');
-        const lista = this.state.data.filter(registro => registro._id !== dato._id);
-        this.setState({ data: lista, filteredData: lista });
-        Swal.fire('Eliminado', 'Ítem eliminado exitosamente.', 'success');
+        try {
+          await axios.delete(`http://localhost:3000/api/medicinas/${dato._id}`);
+          const lista = this.state.data.filter(registro => registro._id !== dato._id);
+          this.setState({ data: lista, filteredData: lista });
+          Swal.fire('Eliminado', 'Ítem eliminado exitosamente.', 'success');
+        } catch (error) {
+          console.error('Error al eliminar el ítem:', error);
+          Swal.fire('Error', 'No se pudo eliminar el ítem.', 'error');
+        }
       }
     });
   }
+  
 
   toggleEstado = async (id) => {
     const registroActual = this.state.data.find(item => item._id === id);
