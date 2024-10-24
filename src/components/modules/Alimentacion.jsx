@@ -1,799 +1,797 @@
-import React from "react"; 
+import React from "react";
 
-import 'bootstrap/dist/css/bootstrap.min.css'; 
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-import { Table, Button, Container, Modal, ModalBody, ModalHeader, ModalFooter, FormGroup, Input, ButtonGroup } from 'reactstrap'; 
+import { Table, Button, Container, Modal, ModalBody, ModalHeader, ModalFooter, FormGroup, Input, ButtonGroup } from 'reactstrap';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons'; 
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 
-import Swal from 'sweetalert2'; 
+import Swal from 'sweetalert2';
 
-import Pagination from '@mui/lab/Pagination'; 
+import Pagination from '@mui/lab/Pagination';
 
-import PaginationItem from '@mui/lab/PaginationItem'; 
+import PaginationItem from '@mui/lab/PaginationItem';
 
- 
+
 
 // Datos iniciales de alimentación 
 
-const data = [ 
+const data = [
 
-  { id: 1, Nombre: "Carne de res", Cantidad: 5, Frecuencia: "Diaria", Estado: 'Administrado' }, 
+    { id: 1, Nombre: "Carne de res", Cantidad: 5, Frecuencia: "Diaria", Estado: 'Administrado' },
 
-  { id: 2, Nombre: "Leche", Cantidad: 10, Frecuencia: "Semanal", Estado: 'No administrado' }, 
+    { id: 2, Nombre: "Leche", Cantidad: 10, Frecuencia: "Semanal", Estado: 'No administrado' },
 
-  { id: 3, Nombre: "Manzanas", Cantidad: 20, Frecuencia: "Diaria", Estado: 'Administrado' }, 
+    { id: 3, Nombre: "Manzanas", Cantidad: 20, Frecuencia: "Diaria", Estado: 'Administrado' },
 
-  { id: 4, Nombre: "Zanahorias", Cantidad: 15, Frecuencia: "Diaria", Estado: 'No administrado' }, 
+    { id: 4, Nombre: "Zanahorias", Cantidad: 15, Frecuencia: "Diaria", Estado: 'No administrado' },
 
-  { id: 5, Nombre: "Arroz", Cantidad: 30, Frecuencia: "Semanal", Estado: 'Administrado' }, 
+    { id: 5, Nombre: "Arroz", Cantidad: 30, Frecuencia: "Semanal", Estado: 'Administrado' },
 
-  { id: 6, Nombre: "Avena", Cantidad: 25, Frecuencia: "Diaria", Estado: 'Administrado' }, 
+    { id: 6, Nombre: "Avena", Cantidad: 25, Frecuencia: "Diaria", Estado: 'Administrado' },
 
-  // Agrega más datos si es necesario 
+    // Agrega más datos si es necesario 
 
-]; 
+];
 
- 
 
-class Alimentacion extends React.Component { 
 
-  state = { 
+class Alimentacion extends React.Component {
 
-    data: data, 
+    state = {
 
-    filteredData: data, 
+        data: data,
 
-    form: { 
+        filteredData: data,
 
-      id: '', 
+        form: {
 
-      Nombre: '', 
+            id: '',
 
-      Cantidad: '', 
+            Nombre: '',
 
-      Frecuencia: '', 
+            Cantidad: '',
 
-      Estado: 'No administrado' 
+            Frecuencia: '',
 
-    }, 
+            Estado: 'No administrado'
 
-    modalAñadir: false, 
+        },
 
-    modalEditar: false, 
+        modalAñadir: false,
 
-    searchText: '', 
+        modalEditar: false,
 
-    nombreError: '', 
+        searchText: '',
 
-    cantidadError: '', 
+        nombreError: '',
 
-    frecuenciaError: '', 
+        cantidadError: '',
 
-    currentPage: 1, 
+        frecuenciaError: '',
 
-    itemsPerPage: 3, 
+        currentPage: 1,
 
-    nombreError: '', 
+        itemsPerPage: 3,
 
-  }; 
+    };
 
- 
 
-  handleChange = e => { 
 
-    const { name, value } = e.target; 
+    handleChange = e => {
 
- 
+        const { name, value } = e.target;
 
-    // Validar el nombre en tiempo real 
 
-    if (name === 'Nombre') { 
 
-      const error = this.validateNombre(value); 
+        // Validar el nombre en tiempo real 
 
-      this.setState({ nombreError: error }); 
+        if (name === 'Nombre') {
 
-    } 
+            const error = this.validateNombre(value);
 
- 
+            this.setState({ nombreError: error });
 
-    this.setState({ 
+        }
 
-      form: { 
 
-        ...this.state.form, 
 
-        [name]: value, 
+        this.setState({
 
-      } 
+            form: {
 
-    }); 
+                ...this.state.form,
 
-  } 
+                [name]: value,
 
- 
+            }
 
-  handleSearch = e => { 
+        });
 
-    const searchText = e.target.value.toLowerCase(); 
+    }
 
-    this.setState({ 
 
-      searchText, 
 
-      filteredData: this.state.data.filter(item => 
+    handleSearch = e => {
 
-        item.Nombre.toLowerCase().includes(searchText) || 
+        const searchText = e.target.value.toLowerCase();
 
-        item.Frecuencia.toLowerCase().includes(searchText) 
+        this.setState({
 
-      ), 
+            searchText,
 
-      currentPage: 1 // Reset page on search 
+            filteredData: this.state.data.filter(item =>
 
-    }); 
+                item.Nombre.toLowerCase().includes(searchText) ||
 
-  } 
+                item.Frecuencia.toLowerCase().includes(searchText)
 
- 
+            ),
 
-  mostrarmodalAñadir = () => { 
+            currentPage: 1 // Reset page on search 
 
-    this.setState({ 
+        });
 
-      modalAñadir: true, 
+    }
 
-      nombreError: '', 
 
-      cantidadError: '', 
 
-      frecuenciaError: '', 
+    mostrarmodalAñadir = () => {
 
-      form: { 
+        this.setState({
 
-        id: '', 
+            modalAñadir: true,
 
-        Nombre: '', 
+            nombreError: '',
 
-        Cantidad: '', 
+            cantidadError: '',
 
-        Frecuencia: '', 
+            frecuenciaError: '',
 
-        Estado: 'No administrado' 
+            form: {
 
-      } 
+                id: '',
 
-    }); 
+                Nombre: '',
 
-  } 
+                Cantidad: '',
 
- 
+                Frecuencia: '',
 
-  ocultarmodalAñadir = () => { 
+                Estado: 'No administrado'
 
-    this.setState({ modalAñadir: false }); 
+            }
 
-  } 
+        });
 
- 
+    }
 
-  mostrarModalEditar = (registro) => { 
 
-    this.setState({ modalEditar: true, form: { ...registro }, nombreError: '', cantidadError: '', frecuenciaError: '' }); 
 
-  } 
+    ocultarmodalAñadir = () => {
 
- 
+        this.setState({ modalAñadir: false });
 
-  ocultarModalEditar = () => { 
+    }
 
-    this.setState({ modalEditar: false }); 
 
-  } 
 
- 
+    mostrarModalEditar = (registro) => {
 
-  validateNombre = nombre => { 
+        this.setState({ modalEditar: true, form: { ...registro }, nombreError: '', cantidadError: '', frecuenciaError: '' });
 
-    if (!nombre) return 'El nombre no puede estar vacío.'; 
+    }
 
-    if (!/^[a-zA-Z]/.test(nombre)) return 'El primer carácter debe ser una letra.'; 
 
-    return ''; // No hay error 
 
-  } 
+    ocultarModalEditar = () => {
 
- 
+        this.setState({ modalEditar: false });
 
-  validateCantidad = cantidad => { 
+    }
 
-    return !isNaN(cantidad) && cantidad > 0; 
 
-  } 
 
- 
+    validateNombre = nombre => {
 
-  validateFrecuencia = frecuencia => { 
+        if (!nombre) return 'El nombre no puede estar vacío.';
 
-    return frecuencia.trim().length > 0; 
+        if (!/^[a-zA-Z]/.test(nombre)) return 'El primer carácter debe ser una letra.';
 
-  } 
+        return ''; // No hay error 
 
- 
+    }
 
-  itemExists = nombre => { 
 
-    return this.state.data.some(item => item.Nombre === nombre); 
 
-  } 
+    validateCantidad = cantidad => {
 
- 
+        return !isNaN(cantidad) && cantidad > 0;
 
-  Añadir = () => { 
+    }
 
-    const { Nombre, Cantidad, Frecuencia, Estado } = this.state.form; 
 
- 
 
-    // Validar campos obligatorios 
+    validateFrecuencia = frecuencia => {
 
-    if (!Nombre || !Cantidad || !Frecuencia) { 
+        return frecuencia.trim().length > 0;
 
-      Swal.fire('Error', 'Todos los campos son obligatorios.', 'error'); 
+    }
 
-      return; 
 
-    } 
 
- 
+    itemExists = nombre => {
 
-    const nombreError = this.validateNombre(Nombre); 
+        return this.state.data.some(item => item.Nombre === nombre);
 
-    if (nombreError) { 
+    }
 
-    Swal.fire('Error', nombreError, 'error'); 
 
-    return; 
 
-    } 
+    Añadir = () => {
 
- 
+        const { Nombre, Cantidad, Frecuencia, Estado } = this.state.form;
 
-    // Validar nombre 
 
-    if (!this.validateNombre(Nombre)) { 
 
-      this.setState({ nombreError: 'El nombre no puede estar vacío.' }); 
+        // Validar campos obligatorios 
 
-      return; 
+        if (!Nombre || !Cantidad || !Frecuencia) {
 
-    } 
+            Swal.fire('Error', 'Todos los campos son obligatorios.', 'error');
 
- 
+            return;
 
-    // Validar cantidad 
+        }
 
-    if (!this.validateCantidad(Cantidad)) { 
 
-      this.setState({ cantidadError: 'La cantidad debe ser un número positivo.' }); 
 
-      return; 
+        const nombreError = this.validateNombre(Nombre);
 
-    } 
+        if (nombreError) {
 
- 
+            Swal.fire('Error', nombreError, 'error');
 
-    // Validar frecuencia 
+            return;
 
-    if (!this.validateFrecuencia(Frecuencia)) { 
+        }
 
-      this.setState({ frecuenciaError: 'La frecuencia no puede estar vacía.' }); 
 
-      return; 
 
-    } 
+        // Validar nombre 
 
- 
+        if (!this.validateNombre(Nombre)) {
 
-    // Verificar si el ítem ya existe 
+            this.setState({ nombreError: 'El nombre no puede estar vacío.' });
 
-    if (this.itemExists(Nombre)) { 
+            return;
 
-      Swal.fire('Error', 'El ítem ya existe.', 'error'); 
+        }
 
-      return; 
 
-    } 
 
- 
+        // Validar cantidad 
 
-    const valorNuevo = { ...this.state.form, id: this.state.data.length + 1 }; 
+        if (!this.validateCantidad(Cantidad)) {
 
-    const lista = [...this.state.data, valorNuevo]; 
+            this.setState({ cantidadError: 'La cantidad debe ser un número positivo.' });
 
-    this.setState({ data: lista, filteredData: lista, modalAñadir: false }); 
+            return;
 
-    Swal.fire('Éxito', 'Ítem registrado exitosamente.', 'success'); 
+        }
 
-  } 
 
- 
 
-  editar = (dato) => { 
+        // Validar frecuencia 
 
-    // Validar campos obligatorios 
+        if (!this.validateFrecuencia(Frecuencia)) {
 
-    if (!dato.Nombre || !dato.Cantidad || !dato.Frecuencia) { 
+            this.setState({ frecuenciaError: 'La frecuencia no puede estar vacía.' });
 
-      Swal.fire('Error', 'Todos los campos son obligatorios.', 'error'); 
+            return;
 
-      return; 
+        }
 
-    } 
 
- 
 
-    // Validar nombre 
+        // Verificar si el ítem ya existe 
 
-    if (!this.validateNombre(dato.Nombre)) { 
+        if (this.itemExists(Nombre)) {
 
-      this.setState({ nombreError: 'El nombre no puede estar vacío.' }); 
+            Swal.fire('Error', 'El ítem ya existe.', 'error');
 
-      return; 
+            return;
 
-    } 
+        }
 
- 
 
-    // Validar cantidad 
 
-    if (!this.validateCantidad(dato.Cantidad)) { 
+        const valorNuevo = { ...this.state.form, id: this.state.data.length + 1 };
 
-      this.setState({ cantidadError: 'La cantidad debe ser un número positivo.' }); 
+        const lista = [...this.state.data, valorNuevo];
 
-      return; 
+        this.setState({ data: lista, filteredData: lista, modalAñadir: false });
 
-    } 
+        Swal.fire('Éxito', 'Ítem registrado exitosamente.', 'success');
 
- 
+    }
 
-    // Validar frecuencia 
 
-    if (!this.validateFrecuencia(dato.Frecuencia)) { 
 
-      this.setState({ frecuenciaError: 'La frecuencia no puede estar vacía.' }); 
+    editar = (dato) => {
 
-      return; 
+        // Validar campos obligatorios 
 
-    } 
+        if (!dato.Nombre || !dato.Cantidad || !dato.Frecuencia) {
 
- 
+            Swal.fire('Error', 'Todos los campos son obligatorios.', 'error');
 
-    // Verificar si el ítem ya existe 
+            return;
 
-    const existingItem = this.state.data.find(item => item.Nombre === dato.Nombre && item.id !== dato.id); 
+        }
 
-    if (existingItem) { 
 
-      Swal.fire('Error', 'El ítem ya existe.', 'error'); 
 
-      return; 
+        // Validar nombre 
 
-    } 
+        if (!this.validateNombre(dato.Nombre)) {
 
- 
+            this.setState({ nombreError: 'El nombre no puede estar vacío.' });
 
-    const lista = this.state.data.map(registro => 
+            return;
 
-      registro.id === dato.id ? { ...dato } : registro 
+        }
 
-    ); 
 
-    this.setState({ data: lista, filteredData: lista, modalEditar: false }); 
 
-    Swal.fire('Éxito', 'Ítem actualizado exitosamente.', 'success'); 
+        // Validar cantidad 
 
-  } 
+        if (!this.validateCantidad(dato.Cantidad)) {
 
- 
+            this.setState({ cantidadError: 'La cantidad debe ser un número positivo.' });
 
-  eliminar = (dato) => { 
+            return;
 
-    Swal.fire({ 
+        }
 
-      title: '¿Estás seguro?', 
 
-      text: `Realmente deseas eliminar el ítem ${dato.id}?`, 
 
-      icon: 'warning', 
+        // Validar frecuencia 
 
-      showCancelButton: true, 
+        if (!this.validateFrecuencia(dato.Frecuencia)) {
 
-      confirmButtonColor: '#3085d6', 
+            this.setState({ frecuenciaError: 'La frecuencia no puede estar vacía.' });
 
-      cancelButtonColor: '#d33', 
+            return;
 
-      confirmButtonText: 'Sí, eliminar', 
+        }
 
-      cancelButtonText: 'Cancelar' 
 
-    }).then(result => { 
 
-      if (result.isConfirmed) { 
+        // Verificar si el ítem ya existe 
 
-        const lista = this.state.data.filter(registro => registro.id !== dato.id); 
+        const existingItem = this.state.data.find(item => item.Nombre === dato.Nombre && item.id !== dato.id);
 
-        this.setState({ data: lista, filteredData: lista }); 
+        if (existingItem) {
 
-        Swal.fire('Eliminado', 'Ítem eliminado exitosamente.', 'success'); 
+            Swal.fire('Error', 'El ítem ya existe.', 'error');
 
-      } 
+            return;
 
-    }); 
+        }
 
-  } 
 
- 
 
-  toggleEstado = (id) => { 
+        const lista = this.state.data.map(registro =>
 
-    const lista = this.state.data.map(registro => 
+            registro.id === dato.id ? { ...dato } : registro
 
-      registro.id === id ? { ...registro, Estado: registro.Estado === 'Administrado' ? 'No Administrado' : 'Administrado' } : registro 
+        );
 
-    ); 
+        this.setState({ data: lista, filteredData: lista, modalEditar: false });
 
-    this.setState({ data: lista, filteredData: lista }); 
+        Swal.fire('Éxito', 'Ítem actualizado exitosamente.', 'success');
 
-  } 
+    }
 
- 
 
-  handlePageChange = (event, value) => { 
 
-    this.setState({ currentPage: value }); 
+    eliminar = (dato) => {
 
-  } 
+        Swal.fire({
 
- 
+            title: '¿Estás seguro?',
 
-  render() { 
+            text: `Realmente deseas eliminar el ítem ${dato.id}?`,
 
-    const { form, modalAñadir, modalEditar, nombreError, cantidadError, frecuenciaError, currentPage, itemsPerPage, filteredData } = this.state; 
+            icon: 'warning',
 
- 
+            showCancelButton: true,
 
-    // Paginación 
+            confirmButtonColor: '#3085d6',
 
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage); 
+            cancelButtonColor: '#d33',
 
-    const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage); 
+            confirmButtonText: 'Sí, eliminar',
 
- 
+            cancelButtonText: 'Cancelar'
 
-    return ( 
+        }).then(result => {
 
-      <Container> 
+            if (result.isConfirmed) {
 
-        <div className="d-flex justify-content-between mb-3"> 
+                const lista = this.state.data.filter(registro => registro.id !== dato.id);
 
-          <Input 
+                this.setState({ data: lista, filteredData: lista });
 
-            type="text" 
+                Swal.fire('Eliminado', 'Ítem eliminado exitosamente.', 'success');
 
-            placeholder="Buscar" 
+            }
 
-            value={this.state.searchText} 
+        });
 
-            onChange={this.handleSearch} 
+    }
 
-            style={{ width: '300px' }} 
 
-          /> 
 
-          <Button color="success" onClick={this.mostrarmodalAñadir}>Añadir alimento</Button> 
+    toggleEstado = (id) => {
 
-        </div> 
+        const lista = this.state.data.map(registro =>
 
- 
+            registro.id === id ? { ...registro, Estado: registro.Estado === 'Administrado' ? 'No Administrado' : 'Administrado' } : registro
 
-        <Table className="table table-bordered"> 
+        );
 
-          <thead> 
+        this.setState({ data: lista, filteredData: lista });
 
-            <tr> 
+    }
 
-              <th>Nombre</th> 
 
-              <th>Cantidad</th> 
 
-              <th>Frecuencia</th> 
+    handlePageChange = (event, value) => {
 
-              <th>Estado</th> 
+        this.setState({ currentPage: value });
 
-              <th>Acciones</th> 
+    }
 
-            </tr> 
 
-          </thead> 
 
-          <tbody> 
+    render() {
 
-            {currentData.map((elemento) => ( 
+        const { form, modalAñadir, modalEditar, nombreError, cantidadError, frecuenciaError, currentPage, itemsPerPage, filteredData } = this.state;
 
-              <tr key={elemento.id}> 
 
-                <td>{elemento.Nombre}</td> 
 
-                <td>{elemento.Cantidad}</td> 
+        // Paginación 
 
-                <td>{elemento.Frecuencia}</td> 
+        const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-                <td>{elemento.Estado}</td> 
+        const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-                <td> 
 
-                  <ButtonGroup> 
 
-                    <Button 
+        return (
 
-                      color={elemento.Estado === 'Administrado' ? 'secondary' : 'success'} 
+            <Container>
 
-                      onClick={() => this.toggleEstado(elemento.id)} 
+                <div className="d-flex justify-content-between mb-3">
 
-                      size="sm" 
+                    <Input
 
-                      className="mr-1" 
+                        type="text"
 
-                    > 
+                        placeholder="Buscar"
 
-                      {elemento.Estado === 'Administrado' ? 'Off' : 'On'} 
+                        value={this.state.searchText}
 
-                    </Button> 
+                        onChange={this.handleSearch}
 
-                    <Button 
+                        style={{ width: '300px' }}
 
-                      color="dark" 
+                    />
 
-                      onClick={() => this.mostrarModalEditar(elemento)} 
+                    <Button color="success" onClick={this.mostrarmodalAñadir}>Añadir alimento</Button>
 
-                      size="sm" 
+                </div>
 
-                      className="mr-1" 
 
-                    > 
 
-                      <FontAwesomeIcon icon={faEdit} /> 
+                <Table className="table table-bordered">
 
-                    </Button> 
+                    <thead>
 
-                    <Button 
+                        <tr>
 
-                      color="danger" 
+                            <th>Nombre</th>
 
-                      onClick={() => this.eliminar(elemento)} 
+                            <th>Cantidad</th>
 
-                      size="sm" 
+                            <th>Frecuencia</th>
 
-                    > 
+                            <th>Estado</th>
 
-                      <FontAwesomeIcon icon={faTrash} /> 
+                            <th>Acciones</th>
 
-                    </Button> 
+                        </tr>
 
-                  </ButtonGroup> 
+                    </thead>
 
-                </td> 
+                    <tbody>
 
-              </tr> 
+                        {currentData.map((elemento) => (
 
-            ))} 
+                            <tr key={elemento.id}>
 
-          </tbody> 
+                                <td>{elemento.Nombre}</td>
 
-        </Table> 
+                                <td>{elemento.Cantidad}</td>
 
- 
+                                <td>{elemento.Frecuencia}</td>
 
-        <div className="d-flex justify-content-center mb-3"> 
+                                <td>{elemento.Estado}</td>
 
-          <Pagination 
+                                <td>
 
-            count={totalPages} 
+                                    <ButtonGroup>
 
-            page={currentPage} 
+                                        <Button
 
-            onChange={this.handlePageChange} 
+                                            color={elemento.Estado === 'Administrado' ? 'secondary' : 'success'}
 
-            renderItem={(item) => <PaginationItem component="a" {...item} />} 
+                                            onClick={() => this.toggleEstado(elemento.id)}
 
-          /> 
+                                            size="sm"
 
-        </div> 
+                                            className="mr-1"
 
- 
+                                        >
 
-        {/* Modal para añadir un nuevo ítem */} 
+                                            {elemento.Estado === 'Administrado' ? 'Off' : 'On'}
 
-        <Modal isOpen={modalAñadir}> 
+                                        </Button>
 
-          <ModalHeader> 
+                                        <Button
 
-            <div> 
+                                            color="dark"
 
-              <h3>Añadir ítem</h3> 
+                                            onClick={() => this.mostrarModalEditar(elemento)}
 
-            </div> 
+                                            size="sm"
 
-          </ModalHeader> 
+                                            className="mr-1"
 
- 
+                                        >
 
-          <ModalBody> 
+                                            <FontAwesomeIcon icon={faEdit} />
 
-            <FormGroup> 
+                                        </Button>
 
-              <label>Nombre:</label> 
+                                        <Button
 
-              <Input className="form-control" name="Nombre" type="text" onChange={this.handleChange} /> 
+                                            color="danger"
 
-              <small className="text-danger">{nombreError}</small> 
+                                            onClick={() => this.eliminar(elemento)}
 
-            </FormGroup> 
+                                            size="sm"
 
- 
+                                        >
 
-            <FormGroup> 
+                                            <FontAwesomeIcon icon={faTrash} />
 
-              <label>Cantidad:</label> 
+                                        </Button>
 
-              <Input className="form-control" name="Cantidad" type="number" onChange={this.handleChange} /> 
+                                    </ButtonGroup>
 
-              <small className="text-danger">{cantidadError}</small> 
+                                </td>
 
-            </FormGroup> 
+                            </tr>
 
- 
+                        ))}
 
-            <FormGroup> 
+                    </tbody>
 
-              <label>Frecuencia:</label> 
+                </Table>
 
-              <Input className="form-control" name="Frecuencia" type="text" onChange={this.handleChange} /> 
 
-              <small className="text-danger">{frecuenciaError}</small> 
 
-            </FormGroup> 
+                <div className="d-flex justify-content-center mb-3">
 
-          </ModalBody> 
+                    <Pagination
 
- 
+                        count={totalPages}
 
-          <ModalFooter> 
+                        page={currentPage}
 
-            <Button color="primary" onClick={this.Añadir}>Añadir</Button> 
+                        onChange={this.handlePageChange}
 
-            <Button color="secondary" onClick={this.ocultarmodalAñadir}>Cancelar</Button> 
+                        renderItem={(item) => <PaginationItem component="a" {...item} />}
 
-          </ModalFooter> 
+                    />
 
-        </Modal> 
+                </div>
 
- 
 
-        {/* Modal para editar un ítem */} 
 
-        <Modal isOpen={modalEditar}> 
+                {/* Modal para añadir un nuevo ítem */}
 
-          <ModalHeader> 
+                <Modal isOpen={modalAñadir}>
 
-            <div> 
+                    <ModalHeader>
 
-              <h3>Editar ítem</h3> 
+                        <div>
 
-            </div> 
+                            <h3>Añadir ítem</h3>
 
-          </ModalHeader> 
+                        </div>
 
- 
+                    </ModalHeader>
 
-          <ModalBody> 
 
-            <FormGroup> 
 
-              <label>Nombre:</label> 
+                    <ModalBody>
 
-              <Input 
+                        <FormGroup>
 
-                className="form-control" 
+                            <label>Nombre:</label>
 
-                name="Nombre" 
+                            <Input className="form-control" name="Nombre" type="text" onChange={this.handleChange} />
 
-                type="text" 
+                            <small className="text-danger">{nombreError}</small>
 
-                value={form.Nombre} 
+                        </FormGroup>
 
-                onChange={this.handleChange} 
 
-              /> 
 
-              <small className="text-danger">{nombreError}</small> 
+                        <FormGroup>
 
-            </FormGroup> 
+                            <label>Cantidad:</label>
 
- 
+                            <Input className="form-control" name="Cantidad" type="number" onChange={this.handleChange} />
 
-            <FormGroup> 
+                            <small className="text-danger">{cantidadError}</small>
 
-              <label>Cantidad:</label> 
+                        </FormGroup>
 
-              <Input 
 
-                className="form-control" 
 
-                name="Cantidad" 
+                        <FormGroup>
 
-                type="number" 
+                            <label>Frecuencia:</label>
 
-                value={form.Cantidad} 
+                            <Input className="form-control" name="Frecuencia" type="text" onChange={this.handleChange} />
 
-                onChange={this.handleChange} 
+                            <small className="text-danger">{frecuenciaError}</small>
 
-              /> 
+                        </FormGroup>
 
-              <small className="text-danger">{cantidadError}</small> 
+                    </ModalBody>
 
-            </FormGroup> 
 
- 
 
-            <FormGroup> 
+                    <ModalFooter>
 
-              <label>Frecuencia:</label> 
+                        <Button color="primary" onClick={this.Añadir}>Añadir</Button>
 
-              <Input 
+                        <Button color="secondary" onClick={this.ocultarmodalAñadir}>Cancelar</Button>
 
-                className="form-control" 
+                    </ModalFooter>
 
-                name="Frecuencia" 
+                </Modal>
 
-                type="text" 
 
-                value={form.Frecuencia} 
 
-                onChange={this.handleChange} 
+                {/* Modal para editar un ítem */}
 
-              /> 
+                <Modal isOpen={modalEditar}>
 
-              <small className="text-danger">{frecuenciaError}</small> 
+                    <ModalHeader>
 
-            </FormGroup> 
+                        <div>
 
-          </ModalBody> 
+                            <h3>Editar ítem</h3>
 
- 
+                        </div>
 
-          <ModalFooter> 
+                    </ModalHeader>
 
-            <Button color="primary" onClick={() => this.editar(form)}>Actualizar</Button> 
 
-            <Button color="secondary" onClick={this.ocultarModalEditar}>Cancelar</Button> 
 
-          </ModalFooter> 
+                    <ModalBody>
 
-        </Modal> 
+                        <FormGroup>
 
-      </Container> 
+                            <label>Nombre:</label>
 
-    ); 
+                            <Input
 
-  } 
+                                className="form-control"
 
-} 
+                                name="Nombre"
 
- 
+                                type="text"
+
+                                value={form.Nombre}
+
+                                onChange={this.handleChange}
+
+                            />
+
+                            <small className="text-danger">{nombreError}</small>
+
+                        </FormGroup>
+
+
+
+                        <FormGroup>
+
+                            <label>Cantidad:</label>
+
+                            <Input
+
+                                className="form-control"
+
+                                name="Cantidad"
+
+                                type="number"
+
+                                value={form.Cantidad}
+
+                                onChange={this.handleChange}
+
+                            />
+
+                            <small className="text-danger">{cantidadError}</small>
+
+                        </FormGroup>
+
+
+
+                        <FormGroup>
+
+                            <label>Frecuencia:</label>
+
+                            <Input
+
+                                className="form-control"
+
+                                name="Frecuencia"
+
+                                type="text"
+
+                                value={form.Frecuencia}
+
+                                onChange={this.handleChange}
+
+                            />
+
+                            <small className="text-danger">{frecuenciaError}</small>
+
+                        </FormGroup>
+
+                    </ModalBody>
+
+
+
+                    <ModalFooter>
+
+                        <Button color="primary" onClick={() => this.editar(form)}>Actualizar</Button>
+
+                        <Button color="secondary" onClick={this.ocultarModalEditar}>Cancelar</Button>
+
+                    </ModalFooter>
+
+                </Modal>
+
+            </Container>
+
+        );
+
+    }
+
+}
+
+
 
 export default Alimentacion; 

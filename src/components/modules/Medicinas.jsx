@@ -4,6 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import Pagination from '@mui/lab/Pagination';
+import PaginationItem from '@mui/lab/PaginationItem';
 
 // Datos iniciales de medicinas
 // const data = [
@@ -29,7 +31,9 @@ class Medicinas extends React.Component {
     nombreMedicinaError: '',
     cantidadError: '',
     dosisError: '',
-    horarioError: ''
+    horarioError: '',
+    currentPage: 1,
+    itemsPerPage: 3,
   };
 
   handleChange = e => {

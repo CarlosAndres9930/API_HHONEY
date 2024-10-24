@@ -6,6 +6,7 @@ import Alimentacion from './Alimentacion'; // Ajusta la ruta según tu estructur
 import Vacunacion from './Vacunacion'; // Ajusta la ruta según tu estructura de carpetas
 import Medicinas from './Medicinas'; // Ajusta la ruta según tu estructura de carpetas
 import Home from './Home'; // Ajusta la ruta según tu estructura de carpetas
+import Tracking from './Tracking2'; // Importa el módulo Tracking
 
 function JustifiedExample() {
   return (
@@ -27,6 +28,9 @@ function JustifiedExample() {
       </Tab>
       <Tab eventKey="vacination" title="Vacunación">
         <Vacunacion />
+      </Tab>
+      <Tab eventKey="tracking" title="Seguimiento"> {/* Nueva pestaña para Tracking */}
+        <Tracking />
       </Tab>
     </Tabs>
   );
